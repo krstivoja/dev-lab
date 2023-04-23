@@ -1,0 +1,32 @@
+.active {
+    background: white;
+    font-weight: bold;
+}
+
+
+#coder{
+    display: flex;
+    gap: 20px;
+
+    #coder-files-list{
+        width: 300px;
+        min-width: 300px;
+        border: 1px solid lightblue;
+
+        li{
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 0;
+            &:hover{ background: lightgray;}
+        }
+    }
+
+    #coder-file-content{
+        flex-grow: 1;
+        border: 1px solid lightblue;
+        overflow-x: scroll;
+        max-height: 90vh;
+    }
+}
