@@ -1,0 +1,26 @@
+.tasks-group{
+
+}
+
+
+.tasks-group-title{
+
+}
+
+
+.tasks-list{
+  border: 1px solid lightblue;
+  min-height: 100px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
+.task-item{
+  border: 1px solid blue;
+  padding: 10px;
+  background: white;
+}
+
