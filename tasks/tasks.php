@@ -9,92 +9,97 @@
  * License: GPL2
  */
 
-include_once 'inc/cpt.php';
-include_once 'inc/taxonomy.php';
 
-add_shortcode("custom_tasks_posts", "custom_tasks_posts_shortcode");
+include 'register.php';
 
-function custom_tasks_posts_shortcode()
-{
-    ob_start();
 
-    $terms = get_terms([
-        "taxonomy" => "progress",
-        "hide_empty" => false,
-    ]);
-
-    if (is_array($terms)) {
-        foreach ($terms as $term) {
-            if (is_object($term)) {  // Ensure $term is an object
-                $args = [
-                    "post_type" => "tasks",
-                    "posts_per_page" => -1,
-                    "tax_query" => [
-                        [
-                            "taxonomy" => "progress",
-                            "field" => "slug",
-                            "terms" => $term->slug,
-                        ],
-                    ],
-                    "orderby" => "menu_order",
-                    "order" => "ASC",
-                ];
-
-                $query = new WP_Query($args);
-
-                if ($query->have_posts()) {
-                    echo "<div class='tasks-group' data-term_slug='$term->slug'>";
-
-                    echo "<h2 class='tasks-group-title'>$term->name</h2>";
-
-                    echo "<div class='tasks-list'>";
-
-                    while ($query->have_posts()) {
-                        $query->the_post();
-
-                        echo "<div class='task-item' data-post_id='" .
-                            get_the_ID() .
-                            "'>";
-                        the_title();
-                        echo "</div>";
-                    }
-
-                    echo "</div>"; // End of .tasks-list
-
-                    echo "</div>"; // End of .tasks-group
-                }
-            }
-        }
+function enqueue_sortable_scripts() {
+    if (current_user_can('administrator')) {
+        wp_enqueue_script('sortablejs', 'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js', array(), null, true);
+        wp_enqueue_script('tasks-sortable', plugin_dir_url(__FILE__) . 'js/tasks-sortable.js', array('jquery', 'sortablejs'), '1.0.0', true);
+        wp_localize_script('tasks-sortable', 'ajaxObject', array('ajaxUrl' => admin_url('admin-ajax.php')));
     }
-
-    wp_reset_postdata();
-    return ob_get_clean();
 }
+add_action('wp_enqueue_scripts', 'enqueue_sortable_scripts');
 
 
-// function custom_enqueue_scripts() {
-//     // Check if the current user is an administrator
-//     if ( current_user_can( 'administrator' ) ) {
-//       // Enqueue the script in the footer
-//       wp_enqueue_script( 'jq', 'https://code.jquery.com/jquery-3.6.4.min.js', array(), '1.0.0', true );
-//       wp_enqueue_script( 'sortable', 'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js', array(), '1.0.0', true );
-//       wp_enqueue_script( 'custom-script', plugin_dir_url( __FILE__ ) . 'js/manager-script.js', array(), '1.0.0', true );
-//     }
-//   }
-//   add_action( 'wp_footer', 'custom_enqueue_scripts' );
 
-function custom_enqueue_scripts() {
-    // Enqueue the custom stylesheet
-    wp_enqueue_style( 'custom-style', plugin_dir_url( __FILE__ ) . 'css/manager-style.css', array(), '1.0.0', 'all' );
-    
-    // Check if the current user is an administrator
-    if ( current_user_can( 'administrator' ) ) {
-      // Enqueue the scripts and styles in the footer
-      wp_enqueue_script( 'wp-api' );
-      wp_enqueue_script( 'jq', 'https://code.jquery.com/jquery-3.6.4.min.js', array('wp-api'), '1.0.0', true );
-      wp_enqueue_script( 'sortable', 'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js', array('wp-api'), '1.0.0', true );
-      wp_enqueue_script( 'custom-script', plugin_dir_url( __FILE__ ) . 'js/manager-script.js', array('wp-api'), '1.0.0', true );
 
+
+function tasks_shortcode($atts) {
+    $output = '';
+    $terms = get_terms(array('taxonomy' => 'progress', 'hide_empty' => false));
+
+    $output .= '<div class="tasks-shortcode">';
+    foreach ($terms as $term) {
+        $output .= '<h3>' . $term->name . '</h3>';
+        $task_args = array(
+            'post_type' => 'tasks',
+            'posts_per_page' => -1,
+            'orderby' => 'menu_order',
+            'order' => 'ASC',
+            'tax_query' => array(
+                array(
+                    'taxonomy' => 'progress',
+                    'field' => 'term_id',
+                    'terms' => $term->term_id
+                )
+            )
+        );
+
+        $tasks = new WP_Query($task_args);
+
+        if ($tasks->have_posts()) {
+            $output .= '<ul class="tasks-list" id="' . $term->slug . '" data-term-id="' . $term->term_id . '">';
+            while ($tasks->have_posts()) {
+                $tasks->the_post();
+                $output .= '<li data-id="' . get_the_ID() . '">' . get_the_title() . '</li>';
+            }
+            $output .= '</ul>';
+        }
+        wp_reset_postdata();
     }
-  }
-  add_action( 'wp_enqueue_scripts', 'custom_enqueue_scripts' );
+    $output .= '</div>';
+
+    return $output;
+}
+add_shortcode('tasks_progress', 'tasks_shortcode');
+
+
+
+
+
+// AJAX function for updating tasks order
+function update_tasks_order() {
+    if (current_user_can('administrator') && isset($_POST['tasks_order'])) {
+        $tasks_order = $_POST['tasks_order'];
+        foreach ($tasks_order as $order => $task_id) {
+            wp_update_post(array('ID' => $task_id, 'menu_order' => $order));
+        }
+        wp_send_json_success('Tasks order updated.');
+    } else {
+        wp_send_json_error('Error updating tasks order.');
+    }
+}
+add_action('wp_ajax_update_tasks_order', 'update_tasks_order');
+
+// AJAX function for updating tasks taxonomy term
+function update_tasks_taxonomy() {
+    if (current_user_can('administrator') && isset($_POST['task_id']) && isset($_POST['term_id'])) {
+        $task_id = intval($_POST['task_id']);
+        $term_id = intval($_POST['term_id']);
+
+        $term = get_term($term_id, 'progress');
+        if ($term) {
+            wp_set_object_terms($task_id, $term->term_id, 'progress');
+            wp_send_json_success('Task taxonomy term updated. Task ID: ' . $task_id . ' | Term ID: ' . $term_id);
+        } else {
+            wp_send_json_error('Error updating task taxonomy term. Task ID: ' . $task_id . ' | Term ID: ' . $term_id);
+        }
+    } else {
+        wp_send_json_error('Error updating task taxonomy term. Insufficient data or permissions.');
+    }
+}
+add_action('wp_ajax_update_tasks_taxonomy', 'update_tasks_taxonomy');
+
+
