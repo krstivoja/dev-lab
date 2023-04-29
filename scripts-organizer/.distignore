@@ -1,0 +1,6 @@
+_dev/
+.git
+.gitignore
+config.codekit3
+prepros.config
+README.md

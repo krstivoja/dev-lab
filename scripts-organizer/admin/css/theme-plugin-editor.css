@@ -1,0 +1,20 @@
+.dplugins--monaco--active .CodeMirror {
+  display: none !important;
+}
+.dplugins--monaco--active #message {
+  display: none;
+}
+.dplugins--monaco--active #templateside > h2 {
+  display: none;
+}
+.dplugins--monaco--active #theme-plugin-editor-label {
+  display: none;
+}
+
+#monaco-editor {
+  height: calc(100vh - 295px) !important;
+}
+
+textarea.inputarea.monaco-mouse-cursor-text {
+  min-height: unset !important;
+}

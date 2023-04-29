@@ -1,0 +1,19 @@
+.code-wrapper{
+    display: flex;
+    gap: 30px;
+    padding: 30px;
+}
+
+.code-wrapper > * {
+    border: 1px solid black;
+}
+
+.code-wrapper main {
+    flex-grow: 1;
+}
+
+.code-wrapper code, .code-wrapper pre{
+    width: 100%;
+}
+
+[x-cloak] { display: none; }
