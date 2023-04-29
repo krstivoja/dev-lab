@@ -20,11 +20,19 @@
 
 .tasks-list{
   border: 1px solid lightblue;
-  min-height: 100px;
+  min-height: 50px;
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  &:empty{
+    display: flex;
+  }
+  
+  &:empty:before{
+    content: 'This is empty';
+  }
 }
 
 
