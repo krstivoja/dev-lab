@@ -9,40 +9,74 @@
  * License: GPL2
  */
 
-require_once 'inc/register-menu.php';
-require_once 'inc/files-list.php';
-
-
-// Define the callback function
-function coder() {
-?>
-
-
-<?php require_once 'inc/content.php'; ?>
-
-<?php
-}
-
-
-function coder_enqueue_admin_css() {
-    wp_enqueue_style('coder-admin-css', plugins_url('css/coder-style.css', __FILE__));
-    wp_enqueue_script('coder-admin-js', plugins_url('js/coder-script.js', __FILE__), array('jquery'), '1.0.0', true);
-}
-add_action('admin_enqueue_scripts', 'coder_enqueue_admin_css');
-
-
-
-// AJAX action for saving the file content
-function coder_save_file_content() {
-    $file = sanitize_text_field($_POST['file']);
-    $content = $_POST['content'];
-    $dir = wp_upload_dir()['basedir'].'/code/';
-
-    if (is_dir($dir) && file_exists($dir.'/'.$file)) {
-        file_put_contents($dir.'/'.$file, $content);
-        wp_send_json_success('File saved successfully.');
-    } else {
-        wp_send_json_error('Oops! Could not save the file.');
+ function custom_tasks_posts_shortcode() {
+    ob_start();
+  
+    $terms = get_terms(array(
+      'taxonomy' => 'progress',
+      'hide_empty' => false,
+    ));
+  
+    if ($terms) {
+      foreach ($terms as $term) {
+        $args = array(
+          'post_type' => 'tasks',
+          'posts_per_page' => -1,
+          'tax_query' => array(
+            array(
+              'taxonomy' => 'progress',
+              'field' => 'slug',
+              'terms' => $term->slug,
+            ),
+          ),
+          'orderby' => 'menu_order',
+          'order' => 'ASC',
+        );
+  
+        $query = new WP_Query($args);
+  
+        if ($query->have_posts()) {
+          echo "<div class='tasks-group' data-term_slug='$term->slug'>";
+  
+          echo "<h2 class='tasks-group-title'>$term->name</h2>";
+  
+          echo "<div class='tasks-list'>";
+  
+          while ($query->have_posts()) {
+            $query->the_post();
+  
+            echo "<div class='task-item' data-post_id='" . get_the_ID() . "'>";
+            the_title();
+            echo "</div>";
+          }
+  
+          echo "</div>"; // End of .tasks-list
+  
+          echo "</div>"; // End of .tasks-group
+        }
+      }
     }
+  
+    wp_reset_postdata();
+    return ob_get_clean();
+  }
+  
+  function custom_tasks_posts_enqueue_scripts() {
+    wp_enqueue_script('sortablejs', 'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js', array(), '', true);
+    
+    wp_enqueue_script('custom-tasks-posts', plugins_url('/js/custom-tasks-posts.js', __FILE__), array('jquery', 'sortablejs'), '', true);
+  }
+
+
+  add_action('wp_enqueue_scripts', 'custom_tasks_posts_enqueue_scripts');
+  add_shortcode('custom_tasks_posts', 'custom_tasks_posts_shortcode');
+  
+
+// Usage [custom_tasks_posts]
+
+function custom_tasks_posts_localize_script() {
+  wp_localize_script('custom-tasks-posts', 'custom_tasks_posts_data', array(
+    'ajaxurl' => admin_url('admin-ajax.php')
+  ));
 }
-add_action('wp_ajax_coder_save_file_content', 'coder_save_file_content');
+add_action('wp_enqueue_scripts', 'custom_tasks_posts_localize_script');
