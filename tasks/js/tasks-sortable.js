@@ -29,7 +29,7 @@ jQuery(document).ready(function($) {
                       data: {
                           action: 'update_tasks_taxonomy',
                           task_id: task_id,
-                          term_id: term_id // <-- Updated this line
+                          term_id: term_id
                       },
                       success: function(response) {
                           console.log(response);

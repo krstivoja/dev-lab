@@ -12,17 +12,17 @@
 
 include 'register.php';
 
-
 function enqueue_sortable_scripts() {
     if (current_user_can('administrator')) {
         wp_enqueue_script('sortablejs', 'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js', array(), null, true);
         wp_enqueue_script('tasks-sortable', plugin_dir_url(__FILE__) . 'js/tasks-sortable.js', array('jquery', 'sortablejs'), '1.0.0', true);
         wp_localize_script('tasks-sortable', 'ajaxObject', array('ajaxUrl' => admin_url('admin-ajax.php')));
     }
+
+    wp_enqueue_style('manager-style', plugin_dir_url(__FILE__) . 'css/manager-style.css'); // Added this line to enqueue the CSS file
+
 }
 add_action('wp_enqueue_scripts', 'enqueue_sortable_scripts');
-
-
 
 
 
@@ -32,6 +32,7 @@ function tasks_shortcode($atts) {
 
     $output .= '<div class="tasks-shortcode">';
     foreach ($terms as $term) {
+        $output .= '<div class="tasks-group-wrap">'; // Added this line
         $output .= '<h3>' . $term->name . '</h3>';
         $task_args = array(
             'post_type' => 'tasks',
@@ -49,14 +50,16 @@ function tasks_shortcode($atts) {
 
         $tasks = new WP_Query($task_args);
 
+        $output .= '<div class="tasks-list" id="' . $term->slug . '" data-term-id="' . $term->term_id . '">';
         if ($tasks->have_posts()) {
-            $output .= '<ul class="tasks-list" id="' . $term->slug . '" data-term-id="' . $term->term_id . '">';
             while ($tasks->have_posts()) {
                 $tasks->the_post();
-                $output .= '<li data-id="' . get_the_ID() . '">' . get_the_title() . '</li>';
+                $output .= '<div class="task-item" data-id="' . get_the_ID() . '">' . get_the_title() . '</div>';
             }
-            $output .= '</ul>';
         }
+        $output .= '</div>';
+
+        $output .= '</div>'; // Added this line
         wp_reset_postdata();
     }
     $output .= '</div>';
@@ -64,7 +67,6 @@ function tasks_shortcode($atts) {
     return $output;
 }
 add_shortcode('tasks_progress', 'tasks_shortcode');
-
 
 
 
@@ -82,6 +84,8 @@ function update_tasks_order() {
     }
 }
 add_action('wp_ajax_update_tasks_order', 'update_tasks_order');
+
+
 
 // AJAX function for updating tasks taxonomy term
 function update_tasks_taxonomy() {
@@ -101,5 +105,6 @@ function update_tasks_taxonomy() {
     }
 }
 add_action('wp_ajax_update_tasks_taxonomy', 'update_tasks_taxonomy');
+
 
 
