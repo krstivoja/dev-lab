@@ -65,24 +65,20 @@ function custom_tasks_posts_shortcode()
     return ob_get_clean();
 }
 
-function custom_tasks_posts_enqueue_scripts()
-{
-    wp_enqueue_script(
-        "sortablejs",
-        "https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js",
-        [],
-        "",
-        true
-    );
+function custom_tasks_posts_enqueue_scripts() {
+    // Enqueue SortableJS library
+    wp_enqueue_script( 'sortablejs', 'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js', [], '', true );
 
-    wp_enqueue_script(
-        "custom-tasks-posts",
-        plugins_url("/js/custom-tasks-posts.js", __FILE__),
-        ["jquery", "sortablejs"],
-        "",
-        true
-    );
+    // Enqueue custom-tasks-posts.js file
+    wp_enqueue_script( 'custom-tasks-posts', plugins_url( '/js/custom-tasks-posts.js', __FILE__ ), array( 'jquery', 'sortablejs' ), '', true );
+
+    // Pass 'ajaxurl' to JavaScript via wp_localize_script
+    wp_localize_script( 'custom-tasks-posts', 'custom_tasks_posts_data', array(
+        'ajaxurl' => admin_url( 'admin-ajax.php' ),
+    ) );
 }
+add_action( 'wp_enqueue_scripts', 'custom_tasks_posts_enqueue_scripts' );
+
 
 add_action("wp_enqueue_scripts", "custom_tasks_posts_enqueue_scripts");
 

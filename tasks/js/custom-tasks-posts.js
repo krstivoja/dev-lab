@@ -25,4 +25,9 @@ jQuery(document).ready(function ($) {
           }
       });
   });
+
+  console.log(custom_tasks_posts_data.ajaxurl);
+
+  
 });
+
