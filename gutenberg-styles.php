@@ -1,37 +1,43 @@
 <?php
-/**
- * Plugin Name: Gutenberg Styles
- * Description: Displays a list of registered Gutenberg blocks sorted by groups.
- * Version: 0.0.1
- */
 
-function gutenberg_block_list_shortcode($atts) {
-    // Retrieve all registered block types
-    $block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
+/*
+  Plugin Name: Gutenberg Styles
+  Version: 1.0
+  Author: Your Name
+  Author URI: Your Website
+*/
 
-    // Organize blocks by groups
-    $blocks_by_group = array();
-
-    foreach ($block_types as $block_type) {
-        $group = $block_type->category ?? 'Uncategorized';
-        $blocks_by_group[$group][] = $block_type;
-    }
-
-    // Sort blocks by group
-    ksort($blocks_by_group);
-
-    // Output the block list
-    $output = '';
-
-    foreach ($blocks_by_group as $group => $blocks) {
-        $output .= '<h3>' . esc_html($group) . '</h3>';
-
-        foreach ($blocks as $block) {
-            $block_name = $block->title ?? $block->name; // Use title if available, otherwise fallback to name
-            $output .= '<p>' . esc_html($block_name) . '</p>';
-        }
-    }
-
-    return $output;
+// Create Gutenberg Styles admin page
+function create_gutenberg_styles_admin_page() {
+  add_menu_page(
+      'Gutenberg Styles',
+      'Gutenberg Styles',
+      'manage_options',
+      'gutenberg-styles',
+      'render_gutenberg_styles_admin_page',
+      '',
+      20
+  );
 }
-add_shortcode('gutenberg_block_list', 'gutenberg_block_list_shortcode');
+
+add_action('admin_menu', 'create_gutenberg_styles_admin_page');
+
+// This function will render the output for your Gutenberg Styles page.
+function render_gutenberg_styles_admin_page() {
+    echo '<div id="app">This is the Gutenberg Styles page.</div>';
+}
+
+// Register and enqueue scripts and styles for Gutenberg Styles admin page
+function enqueue_gutenberg_styles_scripts($hook) {
+    if ('toplevel_page_gutenberg-styles' != $hook) {
+        return;
+    }
+
+    wp_register_script('makeUpANameHereScript', plugin_dir_url(__FILE__) . 'build/index.js', array('wp-blocks', 'wp-element', 'wp-editor'));
+    wp_register_style('makeUpANameHereStyle', plugin_dir_url(__FILE__) . 'build/index.css');
+
+    wp_enqueue_script('makeUpANameHereScript');
+    wp_enqueue_style('makeUpANameHereStyle');
+}
+
+add_action('admin_enqueue_scripts', 'enqueue_gutenberg_styles_scripts');
