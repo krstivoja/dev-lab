@@ -26,12 +26,14 @@ function render_gutenberg_styles_admin_page() {
   <aside>
       <input type="search" name="" id="">
       <div id="filter">
-        <?php
-        $block_categories = get_categories(array('taxonomy' => 'block_directory'));
-        foreach ($block_categories as $category) {
-          echo '<div class="tag">' . esc_html($category->name) . '</div>';
-        }
-        ?>
+          <div class="tag">reusable</div>
+          <div class="tag">text</div>
+          <div class="tag">layout</div>
+          <div class="tag">media</div>
+          <div class="tag">theme</div>
+          <div class="tag">embed</div>
+          <div class="tag">design</div>
+          <div class="tag">widgets</div>
       </div>
 
       <div id="blocks">
@@ -54,19 +56,20 @@ function render_gutenberg_styles_admin_page() {
           <div id="media-blocks" class="blocks-group">
               <h2 class="group-title">Media Blocks</h2>
               <div class="blocks-list">
-                  <div class="block">Image</div>
-                  <div class="block">Gallery</div>
-                  <div class="block">Audio</div>
-                  <div class="block">Cover</div>
-                  <div class="block">File</div>
-                  <div class="block">Media & Text</div>
-                  <div class="block">Video</div>
+              <div class="block">Image</div>
+              <div class="block">Gallery</div>
+              <div class="block">Audio</div>
+              <div class="block">Cover</div>
+              <div class="block">File</div>
+              <div class="block">Media & Text</div>
+              <div class="block">Video</div>
               </div>
           </div>
       </div>
+      
   </aside>
   <main>
-      <div class="block-title">Paragraph</div>
+      <div class="block-title">Add dinamicaly block title</div>
   </main>
 </div> 
 
