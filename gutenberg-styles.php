@@ -24,7 +24,8 @@ add_action('admin_menu', 'create_gutenberg_styles_admin_page');
 
 // This function will render the output for your Gutenberg Styles page.
 function render_gutenberg_styles_admin_page() {
-    echo '<div id="app">This is the Gutenberg Styles page.</div>';
+    echo '<div id="app"></div>';
+    echo '<div id="app2">This is the Gutenberg Styles page.</div>';
 }
 
 // Register and enqueue scripts and styles for Gutenberg Styles admin page
